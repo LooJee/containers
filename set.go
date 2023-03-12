@@ -104,3 +104,21 @@ func (s *Set) Clone() *Set {
 
 	return other
 }
+
+func (s *Set) Equal(other *Set) bool {
+	if s.dataKind != other.dataKind {
+		return false
+	}
+
+	if s.Size() != other.Size() {
+		return false
+	}
+
+	for data := range s.set {
+		if !other.Contains(data) {
+			return false
+		}
+	}
+
+	return true
+}
