@@ -1,4 +1,4 @@
-module github.com/loojee/set
+module github.com/loojee/containers
 
 go 1.17
 
