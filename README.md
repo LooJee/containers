@@ -7,9 +7,9 @@ Have fun.
 
 # Todo
 
-[ ] set
-[ ] tree
-[ ] linklist
-[ ] queue
-[ ] stack
-[ ] ...
+- [ ] set
+- [ ] tree
+- [ ] linklist
+- [ ] queue
+- [ ] stack
+- [ ] ...
