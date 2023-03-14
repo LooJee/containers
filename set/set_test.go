@@ -8,12 +8,11 @@ import (
 )
 
 func TestSet(t *testing.T) {
-	dataSet := NewSet()
+	dataSet := New(false)
 
 	assert.Equal(t, true, dataSet.IsEmpty())
 
-	dataSet.Insert("hello")
-	dataSet.Insert("world")
+	dataSet.Insert("hello", "world")
 
 	dataSet.Iter(func(data interface{}) {
 		fmt.Println(data)
@@ -43,4 +42,19 @@ func TestSet(t *testing.T) {
 
 	dataSet.Insert("hello")
 	assert.Equal(t, false, dataSet.Equal(otherSet))
+
+	dataSet.Clear()
+	assert.Equal(t, true, dataSet.IsEmpty())
+}
+
+func BenchmarkThreadSafe(b *testing.B) {
+	dataSet := NewThreadSafe()
+	fn := func() {
+		for i := 0; i < 100000; i++ {
+			dataSet.Insert(i)
+		}
+	}
+	for i := 0; i < b.N; i++ {
+		fn()
+	}
 }

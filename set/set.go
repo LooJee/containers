@@ -1,12 +1,18 @@
 package set
 
-import "reflect"
+import (
+	"reflect"
+	"sync"
+
+	"github.com/loojee/containers/locker"
+)
 
 var (
 	validKind = make(map[reflect.Kind]struct{})
 )
 
 type Set struct {
+	mu       locker.Locker
 	dataKind reflect.Kind
 	set      map[interface{}]struct{}
 }
@@ -19,8 +25,12 @@ func init() {
 	validKind[reflect.String] = struct{}{}
 }
 
-func NewSet() Set {
-	return Set{set: make(map[interface{}]struct{})}
+func New(threadSafe bool) Set {
+	return Set{set: make(map[interface{}]struct{}), mu: &locker.NoobLocker{}}
+}
+
+func NewThreadSafe() Set {
+	return Set{set: make(map[interface{}]struct{}), mu: &sync.RWMutex{}}
 }
 
 func (s *Set) isValidDataKind(dataKind reflect.Kind) bool {
@@ -32,24 +42,32 @@ func (s *Set) isSuitedDataKind(dataKind reflect.Kind) bool {
 	return s.dataKind == reflect.Invalid || s.dataKind == dataKind
 }
 
-func (s *Set) Insert(data interface{}) error {
-	dataKind := reflect.TypeOf(data).Kind()
+func (s *Set) Insert(datas ...interface{}) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	if !s.isValidDataKind(dataKind) {
-		return &InvalidDataTypeErr{DataType: dataKind.String()}
+	for _, data := range datas {
+		dataKind := reflect.TypeOf(data).Kind()
+
+		if !s.isValidDataKind(dataKind) {
+			return &InvalidDataTypeErr{DataType: dataKind.String()}
+		}
+
+		if !s.isSuitedDataKind(dataKind) {
+			return &UnsuitableTypeErr{Want: s.dataKind.String(), Got: dataKind.String()}
+		}
+
+		s.set[data] = struct{}{}
+		s.dataKind = dataKind
 	}
-
-	if !s.isSuitedDataKind(dataKind) {
-		return &UnsuitableTypeErr{Want: s.dataKind.String(), Got: dataKind.String()}
-	}
-
-	s.set[data] = struct{}{}
-	s.dataKind = dataKind
 
 	return nil
 }
 
 func (s *Set) Contains(data interface{}) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	dataKind := reflect.TypeOf(data).Kind()
 
 	if !s.isValidDataKind(dataKind) || !s.isSuitedDataKind(dataKind) {
@@ -61,6 +79,9 @@ func (s *Set) Contains(data interface{}) bool {
 }
 
 func (s *Set) Del(data interface{}) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	dataKind := reflect.TypeOf(data).Kind()
 
 	if !s.isValidDataKind(dataKind) {
@@ -93,10 +114,14 @@ func (s *Set) IsEmpty() bool {
 }
 
 func (s *Set) Clone() *Set {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	other := &Set{
 		dataKind: s.dataKind,
 		set:      make(map[interface{}]struct{}),
 	}
+
+	other.mu = reflect.New(reflect.TypeOf(s.mu).Elem()).Interface().(locker.Locker)
 
 	for data := range s.set {
 		other.set[data] = struct{}{}
@@ -106,6 +131,9 @@ func (s *Set) Clone() *Set {
 }
 
 func (s *Set) Equal(other *Set) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	if s.dataKind != other.dataKind {
 		return false
 	}
@@ -121,4 +149,16 @@ func (s *Set) Equal(other *Set) bool {
 	}
 
 	return true
+}
+
+func (s *Set) Clear() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.dataKind == reflect.Invalid {
+		return
+	}
+
+	s.dataKind = reflect.Invalid
+	s.set = map[interface{}]struct{}{}
 }
