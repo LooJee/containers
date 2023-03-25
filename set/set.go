@@ -2,9 +2,6 @@ package set
 
 import (
 	"reflect"
-	"sync"
-
-	"github.com/loojee/containers/locker"
 )
 
 var (
@@ -12,7 +9,6 @@ var (
 )
 
 type Set struct {
-	mu       locker.Locker
 	dataKind reflect.Kind
 	set      map[interface{}]struct{}
 }
@@ -25,12 +21,12 @@ func init() {
 	validKind[reflect.String] = struct{}{}
 }
 
-func New(threadSafe bool) Set {
-	return Set{set: make(map[interface{}]struct{}), mu: &locker.NoobLocker{}}
-}
+func Build(data ...interface{}) (*Set, error) {
+	s := &Set{set: make(map[interface{}]struct{})}
 
-func NewThreadSafe() Set {
-	return Set{set: make(map[interface{}]struct{}), mu: &sync.RWMutex{}}
+	err := s.Insert(data...)
+
+	return s, err
 }
 
 func (s *Set) isValidDataKind(dataKind reflect.Kind) bool {
@@ -43,9 +39,6 @@ func (s *Set) isSuitedDataKind(dataKind reflect.Kind) bool {
 }
 
 func (s *Set) Insert(datas ...interface{}) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	for _, data := range datas {
 		dataKind := reflect.TypeOf(data).Kind()
 
@@ -65,9 +58,6 @@ func (s *Set) Insert(datas ...interface{}) error {
 }
 
 func (s *Set) Contains(data interface{}) bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
 	dataKind := reflect.TypeOf(data).Kind()
 
 	if !s.isValidDataKind(dataKind) || !s.isSuitedDataKind(dataKind) {
@@ -79,9 +69,6 @@ func (s *Set) Contains(data interface{}) bool {
 }
 
 func (s *Set) Del(data interface{}) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	dataKind := reflect.TypeOf(data).Kind()
 
 	if !s.isValidDataKind(dataKind) {
@@ -97,10 +84,8 @@ func (s *Set) Del(data interface{}) error {
 	return nil
 }
 
-func (s *Set) Iter(fn func(data interface{})) {
-	cloner := s.Clone()
-
-	for data := range cloner.set {
+func (s *Set) Range(fn func(data interface{})) {
+	for data := range s.set {
 		fn(data)
 	}
 }
@@ -114,14 +99,10 @@ func (s *Set) IsEmpty() bool {
 }
 
 func (s *Set) Clone() *Set {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	other := &Set{
 		dataKind: s.dataKind,
 		set:      make(map[interface{}]struct{}),
 	}
-
-	other.mu = reflect.New(reflect.TypeOf(s.mu).Elem()).Interface().(locker.Locker)
 
 	for data := range s.set {
 		other.set[data] = struct{}{}
@@ -131,9 +112,6 @@ func (s *Set) Clone() *Set {
 }
 
 func (s *Set) Equal(other *Set) bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
 	if s.dataKind != other.dataKind {
 		return false
 	}
@@ -152,13 +130,73 @@ func (s *Set) Equal(other *Set) bool {
 }
 
 func (s *Set) Clear() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	if s.dataKind == reflect.Invalid {
 		return
 	}
 
 	s.dataKind = reflect.Invalid
 	s.set = map[interface{}]struct{}{}
+}
+
+func (s *Set) ToSlice() []interface{} {
+	if s.dataKind == reflect.Invalid {
+		return nil
+	}
+
+	slice := make([]interface{}, 0, len(s.set))
+
+	for data := range s.set {
+		slice = append(slice, data)
+	}
+
+	return slice
+}
+
+// Union returns a new set which contains the union of s and other.
+func (s *Set) Union(other *Set) (*Set, error) {
+	if s.dataKind != other.dataKind {
+		return nil, &UnsuitableTypeErr{Want: s.dataKind.String(), Got: other.dataKind.String()}
+	}
+
+	union := s.Clone()
+
+	other.Range(func(data interface{}) {
+		union.set[data] = struct{}{}
+	})
+
+	return union, nil
+}
+
+// Diff returns a new set which contains the difference between s and other.
+func (s *Set) Diff(other *Set) (*Set, error) {
+	if s.dataKind != other.dataKind {
+		return nil, &UnsuitableTypeErr{Want: s.dataKind.String(), Got: other.dataKind.String()}
+	}
+
+	differ, _ := Build()
+
+	s.Range(func(data interface{}) {
+		if !other.Contains(data) {
+			differ.Insert(data)
+		}
+	})
+
+	return differ, nil
+}
+
+// return a new set which contains the intersection between s and other.
+func (s *Set) Intersect(other *Set) (*Set, error) {
+	if s.dataKind != other.dataKind {
+		return nil, &UnsuitableTypeErr{Want: s.dataKind.String(), Got: other.dataKind.String()}
+	}
+
+	intersect, _ := Build()
+
+	s.Range(func(data interface{}) {
+		if other.Contains(data) {
+			intersect.Insert(data)
+		}
+	})
+
+	return intersect, nil
 }

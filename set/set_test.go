@@ -8,13 +8,13 @@ import (
 )
 
 func TestSet(t *testing.T) {
-	dataSet := New(false)
+	dataSet, _ := Build()
 
 	assert.Equal(t, true, dataSet.IsEmpty())
 
 	dataSet.Insert("hello", "world")
 
-	dataSet.Iter(func(data interface{}) {
+	dataSet.Range(func(data interface{}) {
 		fmt.Println(data)
 	})
 
@@ -33,7 +33,7 @@ func TestSet(t *testing.T) {
 	assert.Equal(t, 1, dataSet.Size())
 	assert.EqualError(t, dataSet.Del(1), (&UnsuitableTypeErr{Want: "string", Got: "int"}).Error())
 
-	dataSet.Iter(func(data interface{}) {
+	dataSet.Range(func(data interface{}) {
 		fmt.Println(data)
 	})
 
@@ -43,18 +43,64 @@ func TestSet(t *testing.T) {
 	dataSet.Insert("hello")
 	assert.Equal(t, false, dataSet.Equal(otherSet))
 
+	set2, _ := Build("1", "2", "3")
+
+	unionSet, err := dataSet.Union(set2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	unionSet.Range(func(data interface{}) {
+		fmt.Println(data)
+	})
+
+	set3, _ := Build(1, 2, 3)
+	_, err = dataSet.Union(set3)
+	if err == nil {
+		t.Fatal("should failed")
+	} else {
+		t.Log(err)
+	}
+
 	dataSet.Clear()
 	assert.Equal(t, true, dataSet.IsEmpty())
 }
 
-func BenchmarkThreadSafe(b *testing.B) {
-	dataSet := NewThreadSafe()
-	fn := func() {
-		for i := 0; i < 100000; i++ {
-			dataSet.Insert(i)
-		}
+func TestDiff(t *testing.T) {
+	s1, _ := Build("1", "2", "3")
+	s2, _ := Build("1", "2", "4")
+
+	diffSet, err := s1.Diff(s2)
+	if err != nil {
+		t.Fatal(err)
 	}
-	for i := 0; i < b.N; i++ {
-		fn()
+
+	if diffSet.Size() != 1 {
+		t.Fatal("should be 1")
+	}
+
+	if !diffSet.Contains("3") {
+		t.Fatal("should contains 3")
+	}
+}
+
+func TestIntersect(t *testing.T) {
+	s1, _ := Build("1", "2", "3")
+	s2, _ := Build("1", "2", "4")
+
+	intersectSet, err := s1.Intersect(s2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if intersectSet.Contains("3") {
+		t.Fatal("should not contains 3")
+	}
+
+	if !intersectSet.Contains("1") {
+		t.Fatal("should contains 1")
+	}
+
+	if !intersectSet.Contains("2") {
+		t.Fatal("should contains 2")
 	}
 }
