@@ -18,3 +18,12 @@ type UnsuitableTypeErr struct {
 func (e *UnsuitableTypeErr) Error() string {
 	return fmt.Sprintf("data type not suitable, want: %s, got: %s", e.Want, e.Got)
 }
+
+type UnsuitableSetTypeErr struct {
+	Want string
+	Got  string
+}
+
+func (e *UnsuitableSetTypeErr) Error() string {
+	return fmt.Sprintf("set type not suitable, want: %s, got: %s", e.Want, e.Got)
+}
