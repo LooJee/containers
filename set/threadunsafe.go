@@ -1,79 +1,49 @@
 package set
 
-import (
-	"reflect"
-)
-
-type ThreadUnsafe struct {
-	dataKind reflect.Kind
-	set      map[interface{}]struct{}
+type ThreadUnsafe[T comparable] struct {
+	set map[T]struct{}
 }
 
-var _ *ThreadUnsafe = (*ThreadUnsafe)(nil)
+func BuildThreadUnsafe[T comparable](data ...T) *ThreadUnsafe[T] {
+	s := &ThreadUnsafe[T]{set: make(map[T]struct{})}
 
-func BuildThreadUnsafe(data ...interface{}) (*ThreadUnsafe, error) {
-	s := &ThreadUnsafe{set: make(map[interface{}]struct{})}
+	s.Insert(data...)
 
-	err := s.Insert(data...)
-
-	return s, err
+	return s
 }
 
-func (s *ThreadUnsafe) isValidDataKind(dataKind reflect.Kind) bool {
-	_, ok := validKind[dataKind]
-	return ok
-}
-
-func (s *ThreadUnsafe) isSuitedDataKind(dataKind reflect.Kind) bool {
-	return s.dataKind == reflect.Invalid || s.dataKind == dataKind
-}
-
-func (s *ThreadUnsafe) Insert(datas ...interface{}) error {
+func (s *ThreadUnsafe[T]) Insert(datas ...T) {
 	for _, data := range datas {
-		dataKind := reflect.TypeOf(data).Kind()
-
-		if !s.isValidDataKind(dataKind) {
-			return &InvalidDataTypeErr{DataType: dataKind.String()}
-		}
-
-		if !s.isSuitedDataKind(dataKind) {
-			return &UnsuitableTypeErr{Want: s.dataKind.String(), Got: dataKind.String()}
-		}
-
 		s.set[data] = struct{}{}
-		s.dataKind = dataKind
 	}
-
-	return nil
 }
 
-func (s *ThreadUnsafe) Contains(data interface{}) bool {
+func (s *ThreadUnsafe[T]) Contains(data T) bool {
 	_, ok := s.set[data]
 	return ok
 }
 
-func (s *ThreadUnsafe) Del(data interface{}) {
+func (s *ThreadUnsafe[T]) Del(data T) {
 	delete(s.set, data)
 }
 
-func (s *ThreadUnsafe) Range(fn func(data interface{})) {
+func (s *ThreadUnsafe[T]) Range(fn func(data T)) {
 	for data := range s.set {
 		fn(data)
 	}
 }
 
-func (s *ThreadUnsafe) Size() int {
+func (s *ThreadUnsafe[T]) Size() int {
 	return len(s.set)
 }
 
-func (s *ThreadUnsafe) IsEmpty() bool {
+func (s *ThreadUnsafe[T]) IsEmpty() bool {
 	return s.Size() == 0
 }
 
-func (s *ThreadUnsafe) Clone() *ThreadUnsafe {
-	other := &ThreadUnsafe{
-		dataKind: s.dataKind,
-		set:      make(map[interface{}]struct{}),
+func (s *ThreadUnsafe[T]) Clone() *ThreadUnsafe[T] {
+	other := &ThreadUnsafe[T]{
+		set: make(map[T]struct{}),
 	}
 
 	for data := range s.set {
@@ -84,11 +54,7 @@ func (s *ThreadUnsafe) Clone() *ThreadUnsafe {
 }
 
 // Equal returns true if s and other are equal.
-func (s *ThreadUnsafe) Equal(other *ThreadUnsafe) bool {
-	if _, err := s.assert(other); err != nil {
-		return false
-	}
-
+func (s *ThreadUnsafe[T]) Equal(other *ThreadUnsafe[T]) bool {
 	if s.Size() != other.Size() {
 		return false
 	}
@@ -103,21 +69,12 @@ func (s *ThreadUnsafe) Equal(other *ThreadUnsafe) bool {
 }
 
 // Clear clears the set.
-func (s *ThreadUnsafe) Clear() {
-	if s.dataKind == reflect.Invalid {
-		return
-	}
-
-	s.dataKind = reflect.Invalid
-	s.set = map[interface{}]struct{}{}
+func (s *ThreadUnsafe[T]) Clear() {
+	s.set = map[T]struct{}{}
 }
 
-func (s *ThreadUnsafe) ToSlice() []interface{} {
-	if s.dataKind == reflect.Invalid {
-		return nil
-	}
-
-	slice := make([]interface{}, 0, len(s.set))
+func (s *ThreadUnsafe[T]) ToSlice() []T {
+	slice := make([]T, 0, len(s.set))
 
 	for data := range s.set {
 		slice = append(slice, data)
@@ -127,58 +84,38 @@ func (s *ThreadUnsafe) ToSlice() []interface{} {
 }
 
 // Union returns a new set which contains the union of s and other.
-func (s *ThreadUnsafe) Union(other *ThreadUnsafe) (*ThreadUnsafe, error) {
-	if _, err := s.assert(other); err != nil {
-		return nil, err
-	}
-
+func (s *ThreadUnsafe[T]) Union(other *ThreadUnsafe[T]) *ThreadUnsafe[T] {
 	union := s.Clone()
 
-	other.Range(func(data interface{}) {
+	other.Range(func(data T) {
 		union.Insert(data)
 	})
 
-	return union, nil
+	return union
 }
 
 // Diff returns a new set which contains the difference between s and other.
-func (s *ThreadUnsafe) Diff(other *ThreadUnsafe) (*ThreadUnsafe, error) {
-	if _, err := s.assert(other); err != nil {
-		return nil, err
-	}
+func (s *ThreadUnsafe[T]) Diff(other *ThreadUnsafe[T]) *ThreadUnsafe[T] {
+	differ := BuildThreadUnsafe[T]()
 
-	differ, _ := BuildThreadUnsafe()
-
-	s.Range(func(data interface{}) {
+	s.Range(func(data T) {
 		if !other.Contains(data) {
 			differ.Insert(data)
 		}
 	})
 
-	return differ, nil
+	return differ
 }
 
 // Intersect return a new set which contains the intersection between s and other.
-func (s *ThreadUnsafe) Intersect(other *ThreadUnsafe) (*ThreadUnsafe, error) {
-	if _, err := s.assert(other); err != nil {
-		return nil, err
-	}
+func (s *ThreadUnsafe[T]) Intersect(other *ThreadUnsafe[T]) *ThreadUnsafe[T] {
+	intersect := BuildThreadUnsafe[T]()
 
-	intersect, _ := BuildThreadUnsafe()
-
-	s.Range(func(data interface{}) {
+	s.Range(func(data T) {
 		if other.Contains(data) {
 			intersect.Insert(data)
 		}
 	})
 
-	return intersect, nil
-}
-
-func (s *ThreadUnsafe) assert(other *ThreadUnsafe) (*ThreadUnsafe, error) {
-	if s.dataKind != other.dataKind {
-		return nil, &UnsuitableTypeErr{Want: s.dataKind.String(), Got: other.dataKind.String()}
-	}
-
-	return other, nil
+	return intersect
 }
