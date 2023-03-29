@@ -9,7 +9,7 @@ Have fun.
 
 - [x] set
 - [ ] tree
-- [x] linklist
+- [x] linkedlist
 - [x] queue
 - [x] stack
 - [ ] ...

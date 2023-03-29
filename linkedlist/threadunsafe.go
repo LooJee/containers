@@ -1,6 +1,6 @@
-package linklist
+package linkedlist
 
-type LinkList[T comparable] struct {
+type LinkedList[T comparable] struct {
 	head *Node[T]
 	tail *Node[T]
 	size int
@@ -11,14 +11,14 @@ type Node[T comparable] struct {
 	next *Node[T]
 }
 
-// BuildLinkList returns a new LinkList[T] with the specified data.
-func BuildLinkList[T comparable]() *LinkList[T] {
-	list := &LinkList[T]{head: nil, tail: nil, size: 0}
+// BuildLinkedList returns a new LinkedList[T] with the specified data.
+func BuildLinkedList[T comparable]() *LinkedList[T] {
+	list := &LinkedList[T]{head: nil, tail: nil, size: 0}
 	return list
 }
 
 // Append appends the specified element to the end of this list.
-func (l *LinkList[T]) Append(data T) {
+func (l *LinkedList[T]) Append(data T) {
 	node := &Node[T]{data: data, next: nil}
 	if l.tail == nil {
 		l.head = node
@@ -31,7 +31,7 @@ func (l *LinkList[T]) Append(data T) {
 }
 
 // Prepend adds data to the front of the list.
-func (l *LinkList[T]) Prepend(data T) {
+func (l *LinkedList[T]) Prepend(data T) {
 	node := &Node[T]{data: data, next: nil}
 	if l.head == nil {
 		l.head = node
@@ -44,7 +44,7 @@ func (l *LinkList[T]) Prepend(data T) {
 }
 
 // Remove remove the specified element from this list, if it is present.
-func (l *LinkList[T]) Remove(data T) {
+func (l *LinkedList[T]) Remove(data T) {
 	if l.head == nil {
 		return
 	}
@@ -67,7 +67,7 @@ func (l *LinkList[T]) Remove(data T) {
 }
 
 // RemoveAt removes the element at the specified position in this list.
-func (l *LinkList[T]) RemoveAt(index int) {
+func (l *LinkedList[T]) RemoveAt(index int) {
 	if index < 0 || index >= l.size {
 		return
 	}
@@ -87,7 +87,7 @@ func (l *LinkList[T]) RemoveAt(index int) {
 }
 
 // InsertAt inserts the specified element at the specified position in this list.
-func (l *LinkList[T]) InsertAt(index int, data T) {
+func (l *LinkedList[T]) InsertAt(index int, data T) {
 	if index < 0 || index >= l.size {
 		return
 	}
@@ -108,7 +108,7 @@ func (l *LinkList[T]) InsertAt(index int, data T) {
 }
 
 // IndexOf returns the index of the first occurrence of the specified element in this list, or -1 if this list does not contain the element.
-func (l *LinkList[T]) IndexOf(data T) int {
+func (l *LinkedList[T]) IndexOf(data T) int {
 	if l.head == nil {
 		return -1
 	}
@@ -125,31 +125,31 @@ func (l *LinkList[T]) IndexOf(data T) int {
 }
 
 // Contains returns true if the list contains the specified element.
-func (l *LinkList[T]) Contains(data T) bool {
+func (l *LinkedList[T]) Contains(data T) bool {
 	return l.IndexOf(data) != -1
 }
 
 // IsEmpty returns true if the list is empty.
-func (l *LinkList[T]) IsEmpty() bool {
+func (l *LinkedList[T]) IsEmpty() bool {
 	return l.head == nil
 }
 
 // Size returns the number of elements in the list.
-func (l *LinkList[T]) Size() int {
+func (l *LinkedList[T]) Size() int {
 	return l.size
 }
 
 // Clear removes all elements from the list.
-func (l *LinkList[T]) Clear() {
+func (l *LinkedList[T]) Clear() {
 	l.head = nil
 	l.tail = nil
 	l.size = 0
 }
 
-func (l *LinkList[T]) Peek() T {
+func (l *LinkedList[T]) Peek() T {
 	return l.head.data
 }
 
-func (l *LinkList[T]) PeekLast() T {
+func (l *LinkedList[T]) PeekLast() T {
 	return l.tail.data
 }

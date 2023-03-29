@@ -1,90 +1,90 @@
-package linklist
+package linkedlist
 
 import "sync"
 
-type ThreadsafeLinkList[T comparable] struct {
+type ThreadsafeLinkedList[T comparable] struct {
 	lock sync.RWMutex
-	data *LinkList[T]
+	data *LinkedList[T]
 }
 
-func BuildThreadsafeLinkList[T comparable]() *ThreadsafeLinkList[T] {
-	return &ThreadsafeLinkList[T]{
-		data: BuildLinkList[T](),
+func BuildThreadsafeLinkedList[T comparable]() *ThreadsafeLinkedList[T] {
+	return &ThreadsafeLinkedList[T]{
+		data: BuildLinkedList[T](),
 		lock: sync.RWMutex{},
 	}
 }
 
-func (l *ThreadsafeLinkList[T]) Append(data T) {
+func (l *ThreadsafeLinkedList[T]) Append(data T) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	l.data.Append(data)
 }
 
-func (l *ThreadsafeLinkList[T]) Prepend(data T) {
+func (l *ThreadsafeLinkedList[T]) Prepend(data T) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	l.data.Prepend(data)
 }
 
-func (l *ThreadsafeLinkList[T]) InsertAt(index int, data T) {
+func (l *ThreadsafeLinkedList[T]) InsertAt(index int, data T) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	l.data.InsertAt(index, data)
 }
 
-func (l *ThreadsafeLinkList[T]) RemoveAt(index int) {
+func (l *ThreadsafeLinkedList[T]) RemoveAt(index int) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	l.data.RemoveAt(index)
 }
 
-func (l *ThreadsafeLinkList[T]) Remove(data T) {
+func (l *ThreadsafeLinkedList[T]) Remove(data T) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	l.data.Remove(data)
 }
 
-func (l *ThreadsafeLinkList[T]) IsEmpty() bool {
+func (l *ThreadsafeLinkedList[T]) IsEmpty() bool {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
 	return l.data.IsEmpty()
 }
 
-func (l *ThreadsafeLinkList[T]) Size() int {
+func (l *ThreadsafeLinkedList[T]) Size() int {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
 	return l.data.Size()
 }
 
-func (l *ThreadsafeLinkList[T]) Clear() {
+func (l *ThreadsafeLinkedList[T]) Clear() {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	l.data.Clear()
 }
 
-func (l *ThreadsafeLinkList[T]) Contains(data T) bool {
+func (l *ThreadsafeLinkedList[T]) Contains(data T) bool {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
 	return l.data.Contains(data)
 }
 
-func (l *ThreadsafeLinkList[T]) Peek() T {
+func (l *ThreadsafeLinkedList[T]) Peek() T {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
 	return l.data.Peek()
 }
 
-func (l *ThreadsafeLinkList[T]) PeekLast() T {
+func (l *ThreadsafeLinkedList[T]) PeekLast() T {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
