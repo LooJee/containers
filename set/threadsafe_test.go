@@ -11,7 +11,7 @@ import (
 )
 
 func TestThreadSafe_Set(t *testing.T) {
-	dataSet := BuildThreadSafe[string]()
+	dataSet := BuildThreadsafeSet[string]()
 
 	assert.Equal(t, true, dataSet.IsEmpty())
 
@@ -42,9 +42,9 @@ func TestThreadSafe_Set(t *testing.T) {
 	assert.Equal(t, true, dataSet.IsEmpty())
 }
 
-func TestThreadSafe_Union(t *testing.T) {
-	s1 := BuildThreadSafe("1", "2", "3")
-	s2 := BuildThreadSafe("1", "2", "4")
+func TestThreadsafeSet_Union(t *testing.T) {
+	s1 := BuildThreadsafeSet("1", "2", "3")
+	s2 := BuildThreadsafeSet("1", "2", "4")
 
 	unionSet := s1.Union(s2)
 
@@ -52,15 +52,15 @@ func TestThreadSafe_Union(t *testing.T) {
 		t.Fatal("should be 4")
 	}
 
-	ss := BuildThreadSafe("1", "2", "3", "4")
+	ss := BuildThreadsafeSet("1", "2", "3", "4")
 	if !ss.Equal(unionSet) {
 		t.Fatal("should equal")
 	}
 }
 
-func TestThreadSafe_Diff(t *testing.T) {
-	s1 := BuildThreadSafe("1", "2", "3")
-	s2 := BuildThreadSafe("1", "2", "4")
+func TestThreadsafeSet_Diff(t *testing.T) {
+	s1 := BuildThreadsafeSet("1", "2", "3")
+	s2 := BuildThreadsafeSet("1", "2", "4")
 
 	diffSet := s1.Diff(s2)
 
@@ -73,9 +73,9 @@ func TestThreadSafe_Diff(t *testing.T) {
 	}
 }
 
-func TestThreadSafe_Intersect(t *testing.T) {
-	s1 := BuildThreadSafe("1", "2", "3")
-	s2 := BuildThreadSafe("1", "2", "4")
+func TestThreadsafeSet_Intersect(t *testing.T) {
+	s1 := BuildThreadsafeSet("1", "2", "3")
+	s2 := BuildThreadsafeSet("1", "2", "4")
 
 	intersectSet := s1.Intersect(s2)
 
@@ -83,16 +83,16 @@ func TestThreadSafe_Intersect(t *testing.T) {
 		t.Fatal("should not contains 3")
 	}
 
-	subSet := BuildThreadSafe("1", "2")
+	subSet := BuildThreadsafeSet("1", "2")
 	if !subSet.Equal(intersectSet) {
 		t.Fatal("should equal")
 	}
 }
 
 // 测试是否并发安全
-func TestThreadSafe_Concurrent(t *testing.T) {
+func TestThreadsafeSet_Concurrent(t *testing.T) {
 	// 创建一个Set和一个WaitGroup计数器
-	s := BuildThreadSafe[int]()
+	s := BuildThreadsafeSet[int]()
 	var wg sync.WaitGroup
 
 	// 启动多个协程并发读写Set

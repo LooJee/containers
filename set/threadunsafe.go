@@ -1,48 +1,48 @@
 package set
 
-type ThreadUnsafe[T comparable] struct {
+type Set[T comparable] struct {
 	set map[T]struct{}
 }
 
-func BuildThreadUnsafe[T comparable](data ...T) *ThreadUnsafe[T] {
-	s := &ThreadUnsafe[T]{set: make(map[T]struct{})}
+func BuildSet[T comparable](data ...T) *Set[T] {
+	s := &Set[T]{set: make(map[T]struct{})}
 
 	s.Insert(data...)
 
 	return s
 }
 
-func (s *ThreadUnsafe[T]) Insert(datas ...T) {
+func (s *Set[T]) Insert(datas ...T) {
 	for _, data := range datas {
 		s.set[data] = struct{}{}
 	}
 }
 
-func (s *ThreadUnsafe[T]) Contains(data T) bool {
+func (s *Set[T]) Contains(data T) bool {
 	_, ok := s.set[data]
 	return ok
 }
 
-func (s *ThreadUnsafe[T]) Del(data T) {
+func (s *Set[T]) Del(data T) {
 	delete(s.set, data)
 }
 
-func (s *ThreadUnsafe[T]) Range(fn func(data T)) {
+func (s *Set[T]) Range(fn func(data T)) {
 	for data := range s.set {
 		fn(data)
 	}
 }
 
-func (s *ThreadUnsafe[T]) Size() int {
+func (s *Set[T]) Size() int {
 	return len(s.set)
 }
 
-func (s *ThreadUnsafe[T]) IsEmpty() bool {
+func (s *Set[T]) IsEmpty() bool {
 	return s.Size() == 0
 }
 
-func (s *ThreadUnsafe[T]) Clone() *ThreadUnsafe[T] {
-	other := &ThreadUnsafe[T]{
+func (s *Set[T]) Clone() *Set[T] {
+	other := &Set[T]{
 		set: make(map[T]struct{}),
 	}
 
@@ -54,7 +54,7 @@ func (s *ThreadUnsafe[T]) Clone() *ThreadUnsafe[T] {
 }
 
 // Equal returns true if s and other are equal.
-func (s *ThreadUnsafe[T]) Equal(other *ThreadUnsafe[T]) bool {
+func (s *Set[T]) Equal(other *Set[T]) bool {
 	if s.Size() != other.Size() {
 		return false
 	}
@@ -69,11 +69,11 @@ func (s *ThreadUnsafe[T]) Equal(other *ThreadUnsafe[T]) bool {
 }
 
 // Clear clears the set.
-func (s *ThreadUnsafe[T]) Clear() {
+func (s *Set[T]) Clear() {
 	s.set = map[T]struct{}{}
 }
 
-func (s *ThreadUnsafe[T]) ToSlice() []T {
+func (s *Set[T]) ToSlice() []T {
 	slice := make([]T, 0, len(s.set))
 
 	for data := range s.set {
@@ -84,7 +84,7 @@ func (s *ThreadUnsafe[T]) ToSlice() []T {
 }
 
 // Union returns a new set which contains the union of s and other.
-func (s *ThreadUnsafe[T]) Union(other *ThreadUnsafe[T]) *ThreadUnsafe[T] {
+func (s *Set[T]) Union(other *Set[T]) *Set[T] {
 	union := s.Clone()
 
 	other.Range(func(data T) {
@@ -95,8 +95,8 @@ func (s *ThreadUnsafe[T]) Union(other *ThreadUnsafe[T]) *ThreadUnsafe[T] {
 }
 
 // Diff returns a new set which contains the difference between s and other.
-func (s *ThreadUnsafe[T]) Diff(other *ThreadUnsafe[T]) *ThreadUnsafe[T] {
-	differ := BuildThreadUnsafe[T]()
+func (s *Set[T]) Diff(other *Set[T]) *Set[T] {
+	differ := BuildSet[T]()
 
 	s.Range(func(data T) {
 		if !other.Contains(data) {
@@ -108,8 +108,8 @@ func (s *ThreadUnsafe[T]) Diff(other *ThreadUnsafe[T]) *ThreadUnsafe[T] {
 }
 
 // Intersect return a new set which contains the intersection between s and other.
-func (s *ThreadUnsafe[T]) Intersect(other *ThreadUnsafe[T]) *ThreadUnsafe[T] {
-	intersect := BuildThreadUnsafe[T]()
+func (s *Set[T]) Intersect(other *Set[T]) *Set[T] {
+	intersect := BuildSet[T]()
 
 	s.Range(func(data T) {
 		if other.Contains(data) {

@@ -8,7 +8,7 @@ import (
 )
 
 func TestSet(t *testing.T) {
-	dataSet := BuildThreadUnsafe[string]()
+	dataSet := BuildSet[string]()
 
 	assert.Equal(t, true, dataSet.IsEmpty())
 
@@ -39,9 +39,9 @@ func TestSet(t *testing.T) {
 	assert.Equal(t, true, dataSet.IsEmpty())
 }
 
-func TestThreadUnsafe_Union(t *testing.T) {
-	s1 := BuildThreadUnsafe("1", "2", "3")
-	s2 := BuildThreadUnsafe("1", "2", "4")
+func TestSet_Union(t *testing.T) {
+	s1 := BuildSet("1", "2", "3")
+	s2 := BuildSet("1", "2", "4")
 
 	unionSet := s1.Union(s2)
 
@@ -49,15 +49,15 @@ func TestThreadUnsafe_Union(t *testing.T) {
 		t.Fatal("should be 4")
 	}
 
-	ss := BuildThreadUnsafe("1", "2", "3", "4")
+	ss := BuildSet("1", "2", "3", "4")
 	if !ss.Equal(unionSet) {
 		t.Fatal("should equal")
 	}
 }
 
-func TestThreadUnsafe_Diff(t *testing.T) {
-	s1 := BuildThreadUnsafe("1", "2", "3")
-	s2 := BuildThreadUnsafe("1", "2", "4")
+func TestSet_Diff(t *testing.T) {
+	s1 := BuildSet("1", "2", "3")
+	s2 := BuildSet("1", "2", "4")
 
 	diffSet := s1.Diff(s2)
 
@@ -70,9 +70,9 @@ func TestThreadUnsafe_Diff(t *testing.T) {
 	}
 }
 
-func TestThreadUnsafe_Intersect(t *testing.T) {
-	s1 := BuildThreadUnsafe("1", "2", "3")
-	s2 := BuildThreadUnsafe("1", "2", "4")
+func TestSet_Intersect(t *testing.T) {
+	s1 := BuildSet("1", "2", "3")
+	s2 := BuildSet("1", "2", "4")
 
 	intersectSet := s1.Intersect(s2)
 
@@ -80,7 +80,7 @@ func TestThreadUnsafe_Intersect(t *testing.T) {
 		t.Fatal("should not contains 3")
 	}
 
-	subSet := BuildThreadUnsafe("1", "2")
+	subSet := BuildSet("1", "2")
 	if !subSet.Equal(intersectSet) {
 		t.Fatal("should equal")
 	}

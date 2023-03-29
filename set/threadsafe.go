@@ -4,94 +4,94 @@ import (
 	"sync"
 )
 
-type Threadsafe[T comparable] struct {
+type ThreadsafeSet[T comparable] struct {
 	lock sync.RWMutex
-	set  *ThreadUnsafe[T]
+	set  *Set[T]
 }
 
-func BuildThreadSafe[T comparable](data ...T) *Threadsafe[T] {
-	return &Threadsafe[T]{
+func BuildThreadsafeSet[T comparable](data ...T) *ThreadsafeSet[T] {
+	return &ThreadsafeSet[T]{
 		lock: sync.RWMutex{},
-		set:  BuildThreadUnsafe[T](data...),
+		set:  BuildSet[T](data...),
 	}
 }
 
-func (s *Threadsafe[T]) Insert(datas ...T) {
+func (s *ThreadsafeSet[T]) Insert(datas ...T) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	s.set.Insert(datas...)
 }
 
-func (s *Threadsafe[T]) Del(item T) {
+func (s *ThreadsafeSet[T]) Del(item T) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.set.Del(item)
 }
 
-func (s *Threadsafe[T]) Contains(item T) bool {
+func (s *ThreadsafeSet[T]) Contains(item T) bool {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	return s.set.Contains(item)
 }
 
-func (s *Threadsafe[T]) Size() int {
+func (s *ThreadsafeSet[T]) Size() int {
 	return s.set.Size()
 }
 
-func (s *Threadsafe[T]) Clear() {
+func (s *ThreadsafeSet[T]) Clear() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	s.set.Clear()
 }
 
-func (s *Threadsafe[T]) Clone() *Threadsafe[T] {
+func (s *ThreadsafeSet[T]) Clone() *ThreadsafeSet[T] {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	return BuildThreadSafe(s.set.ToSlice()...)
+	return BuildThreadsafeSet(s.set.ToSlice()...)
 }
 
-func (s *Threadsafe[T]) Diff(other *Threadsafe[T]) *Threadsafe[T] {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-
-	other.lock.RLock()
-	defer other.lock.RUnlock()
-
-	return BuildThreadSafe[T](s.set.Diff(other.set).ToSlice()...)
-}
-
-func (s *Threadsafe[T]) Union(other *Threadsafe[T]) *Threadsafe[T] {
+func (s *ThreadsafeSet[T]) Diff(other *ThreadsafeSet[T]) *ThreadsafeSet[T] {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	other.lock.RLock()
 	defer other.lock.RUnlock()
 
-	return BuildThreadSafe[T](s.set.Union(other.set).ToSlice()...)
+	return BuildThreadsafeSet[T](s.set.Diff(other.set).ToSlice()...)
 }
 
-func (s *Threadsafe[T]) Range(fn func(T)) {
+func (s *ThreadsafeSet[T]) Union(other *ThreadsafeSet[T]) *ThreadsafeSet[T] {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	other.lock.RLock()
+	defer other.lock.RUnlock()
+
+	return BuildThreadsafeSet[T](s.set.Union(other.set).ToSlice()...)
+}
+
+func (s *ThreadsafeSet[T]) Range(fn func(T)) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	s.set.Range(fn)
 }
 
-func (s *Threadsafe[T]) Intersect(other *Threadsafe[T]) *Threadsafe[T] {
+func (s *ThreadsafeSet[T]) Intersect(other *ThreadsafeSet[T]) *ThreadsafeSet[T] {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	other.lock.RLock()
 	defer other.lock.RUnlock()
 
-	return BuildThreadSafe[T](s.set.Intersect(other.set).ToSlice()...)
+	return BuildThreadsafeSet[T](s.set.Intersect(other.set).ToSlice()...)
 }
 
-func (s *Threadsafe[T]) Equal(other *Threadsafe[T]) bool {
+func (s *ThreadsafeSet[T]) Equal(other *ThreadsafeSet[T]) bool {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -101,6 +101,6 @@ func (s *Threadsafe[T]) Equal(other *Threadsafe[T]) bool {
 	return s.set.Equal(other.set)
 }
 
-func (s *Threadsafe[T]) IsEmpty() bool {
+func (s *ThreadsafeSet[T]) IsEmpty() bool {
 	return s.set.IsEmpty()
 }
