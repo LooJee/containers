@@ -10,6 +10,6 @@ Have fun.
 - [x] set
 - [ ] tree
 - [ ] linklist
-- [ ] queue
+- [x] queue
 - [x] stack
 - [ ] ...

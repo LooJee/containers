@@ -2,12 +2,12 @@ package queue
 
 import "sync"
 
-type ThreadsafeQueue[T any] struct {
+type ThreadsafeQueue[T comparable] struct {
 	lock sync.RWMutex
 	data *Queue[T]
 }
 
-func BuildThreadsafeQueue[T any](data ...T) *ThreadsafeQueue[T] {
+func BuildThreadsafeQueue[T comparable](data ...T) *ThreadsafeQueue[T] {
 	return &ThreadsafeQueue[T]{
 		data: BuildQueue[T](data...),
 		lock: sync.RWMutex{},

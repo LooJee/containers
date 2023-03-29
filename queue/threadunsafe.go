@@ -1,10 +1,10 @@
 package queue
 
-type Queue[T any] struct {
+type Queue[T comparable] struct {
 	queue []T
 }
 
-func BuildQueue[T any](data ...T) *Queue[T] {
+func BuildQueue[T comparable](data ...T) *Queue[T] {
 	que := &Queue[T]{queue: make([]T, 0)}
 	que.Enqueue(data...)
 	return que
