@@ -11,5 +11,5 @@ Have fun.
 - [ ] tree
 - [ ] linklist
 - [ ] queue
-- [ ] stack
+- [x] stack
 - [ ] ...
